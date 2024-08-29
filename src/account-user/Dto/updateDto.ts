@@ -3,6 +3,12 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateDto {
 
+  @IsNumber()
+  @ApiProperty({
+    required: false,
+  })
+  accountId: number;
+
   @IsOptional()
   @IsNumber()
   @ApiProperty({
@@ -22,7 +28,7 @@ export class UpdateDto {
   @ApiProperty({
     required: false,
   })
-  newEmail: string
+  name: string
 
 
 }

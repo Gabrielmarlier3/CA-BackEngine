@@ -62,11 +62,11 @@ export class AccountAuthService {
   }
 
   async changePassword(newPassword: string, email:string, refactorCode:number): Promise<void> {
-    this.logger.log(email)
     const account = await this.findByEmail(email);
     if(!account){
       throw new HttpException('Account not Found', HttpStatus.BAD_REQUEST);
     }
+
     const verifiedCode = await this.emailService.verifyCode(account, refactorCode);
 
     if(verifiedCode){

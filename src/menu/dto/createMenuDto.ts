@@ -40,5 +40,5 @@ export class CreateMenuDto {
   @ApiProperty({
     required: true,
   })
-  UserId: number
+  userId: number
 }

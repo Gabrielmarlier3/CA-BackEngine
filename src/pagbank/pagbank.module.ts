@@ -4,9 +4,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { PagbankService } from './pagbank.service';
 import { MenuModule } from '../menu/menu.module';
 import { AccountUserModule } from '../account-user/account-user.module';
+import { PagBankModel } from './pagbank.model';
+import { SequelizeModule } from '@nestjs/sequelize';
 
 @Module({
   imports: [
+    SequelizeModule.forFeature([PagBankModel]),
     ConfigModule,
     HttpModule.registerAsync({
       imports: [ConfigModule],

@@ -62,12 +62,16 @@ export class EmailService {
   }
 
   async verifyCode(accountAuth: AccountAuthModel, refactorCode): Promise<boolean> {
-    const code = await this.emailModel.findOne({
-      rejectOnEmpty: undefined,
-      where: { recovery_key: refactorCode, accountAuthId: accountAuth.id },
-    });
-    if(code){
-      return true;
+    try {
+      const code = await this.emailModel.findOne({
+        rejectOnEmpty: undefined,
+        where: { recovery_key: refactorCode, accountAuthId: accountAuth.id },
+      });
+      if (code) {
+        return true;
+      }
+    } catch (e) {
+      this.logger.error(e)
     }
   }
 

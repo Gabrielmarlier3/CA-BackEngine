@@ -20,14 +20,18 @@ module.exports = {
         unique: true,
       },
       telephoneNumber: {
-        type: Sequelize.NUMBER,
+        type: Sequelize.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
       },
       cpfCnpj: {
-        type: Sequelize.NUMBER,
+        type: Sequelize.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
+      },
+      address: {
+        type: Sequelize.JSONB,
+        allowNull: false,
       },
       isLegalPerson: {
         type: Sequelize.BOOLEAN,

@@ -10,7 +10,7 @@ module.exports = {
         autoIncrement: true,
       },
       recovery_key: {
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
       },
       accountAuthId: {
         type: Sequelize.INTEGER,

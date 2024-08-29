@@ -2,17 +2,18 @@ import { IsString, IsEmail, IsNotEmpty, IsObject, IsNumber, IsBoolean } from 'cl
 import { ApiProperty } from '@nestjs/swagger'
 
 export class UpdateMenuDto {
+  @IsNotEmpty()
   @IsString()
   @ApiProperty({
     required: true,
   })
-  name: string;
+  foodIdentifier: string;
 
   @IsString()
   @ApiProperty({
     required: true,
   })
-  newName: string;
+  name: string;
 
   @IsString()
   @ApiProperty({
@@ -43,6 +44,6 @@ export class UpdateMenuDto {
   @ApiProperty({
     required: true,
   })
-  UserId: number
+  userId: number
 
 }

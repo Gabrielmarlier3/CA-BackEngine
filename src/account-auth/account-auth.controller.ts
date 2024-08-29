@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Logger, Param, Post, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Logger, Post, Put } from '@nestjs/common';
 import { AccountAuthService } from './account-auth.service';
 import { AccessDto } from './Dto/AccessDto';
 import { SendCodeDto } from './Dto/sendCodeDto';
@@ -33,7 +33,7 @@ export class AccountAuthController {
     }
   }
 
-  @Post('changePassword')
+  @Put('changePassword')
   async changePassword(@Body() updateDto: UpdadeDto):Promise<string>{
     try {
       const { newPassword, email, refactorCode } = updateDto;

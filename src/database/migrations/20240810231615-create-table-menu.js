@@ -2,12 +2,13 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('meals', {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('menu', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
+        allowNull: false,
       },
       name: {
         type: Sequelize.STRING,
@@ -15,20 +16,24 @@ module.exports = {
       },
       description: {
         type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: false,
       },
       image: {
         type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: false,
       },
       price: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       available: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: true,
+      },
+      identifier: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -40,11 +45,10 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
-
     });
   },
 
-  async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable('meals');
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('menu');
   }
 };

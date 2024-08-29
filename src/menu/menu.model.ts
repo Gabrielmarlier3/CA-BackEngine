@@ -1,10 +1,10 @@
 import { DataTypes } from 'sequelize';
-import { Column, Model, Table, PrimaryKey, AutoIncrement, HasOne, ForeignKey } from 'sequelize-typescript';
-import { AccountUserModel } from '../account-user/account-user.model';
+import { Column, Model, Table, PrimaryKey, AutoIncrement } from 'sequelize-typescript';
 
 @Table({
   tableName: 'menu',
 })
+
 export class MenuModel extends Model {
   @PrimaryKey
   @AutoIncrement

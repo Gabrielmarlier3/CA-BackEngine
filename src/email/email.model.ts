@@ -15,9 +15,9 @@ export class EmailModel extends Model{
   id: number;
 
   @Column({
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
   })
-  recovery_key: string;
+  recovery_key: number;
 
   @ForeignKey(() => AccountAuthModel)
   @Column({

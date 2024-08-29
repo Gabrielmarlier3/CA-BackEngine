@@ -1,4 +1,4 @@
-import { Body, Controller, HttpException, HttpStatus, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Logger, Param, Post, Put } from '@nestjs/common';
 import { AccountUserService } from './account-user.service';
 import { UpdateDto } from './Dto/updateDto'
 import { CreateDto } from './Dto/createDto';
@@ -6,7 +6,6 @@ import { validateCnpj } from '../shared/helpers/validate-cnpj';
 import { validateCPF } from '../shared/helpers/validate-cpf';
 import { DeleteDto } from './Dto/deleteDto';
 import { AdminManagement } from './Dto/adminManagement';
-import { Address } from './interface/address';
 import { ChangeAddressDto } from './Dto/changeAddressDto';
 
 @Controller('account-user')
@@ -14,18 +13,23 @@ export class AccountUserController {
 
   constructor(private readonly service: AccountUserService) {}
 
+  logger = new Logger('AccountUserController');
 
-  @Post('updateAccount')
+  @Get(':email')
+  async getAccount(@Param('email') email: string) {
+    return await this.service.getAccountUserByEmail(email);
+  }
+
+  @Put('updateAccount')
   async updateAccount(@Body() updateDto: UpdateDto):Promise<string> {
     try{
-      const { email, telephoneNumber, newEmail } = updateDto;
-      await this.service.updateAccountUser(email, newEmail, telephoneNumber);
+      const { accountId ,email, telephoneNumber, name } = updateDto;
+      await this.service.updateAccountUser(accountId , email, name, telephoneNumber);
       return 'ok'
     }catch (e){
       throw new HttpException('Error updating profile', HttpStatus.BAD_REQUEST);
     }
   }
-  logger = new Logger('AccountUserController');
 
   @Post('create')
   async createAccount(@Body() createDto: CreateDto):Promise<string> {
@@ -45,21 +49,22 @@ export class AccountUserController {
     return 'ok';
   }
 
-
-  @Post('changeAddress')
+  @Put('changeAddress')
   async changeAddress(@Body() changeAddressDto: ChangeAddressDto):Promise<string> {
-    const { address } = changeAddressDto
-
+    const { accountId , address } = changeAddressDto
+    this.logger.debug(accountId, address );
+    await this.service.changeAddress( accountId , address)
     return 'ok'
   }
-  @Post('deactivateAccount')
+
+  @Put('deactivateAccount')
   async deactivateAccount(@Body() deleteDto: DeleteDto):Promise<string> {
     const { email, password } = deleteDto;
     await this.service.deactivateAccount(email, password)
     return 'ok'
   }
 
-  @Post('addAdmin')
+  @Put('addAdmin')
   async addAdmin(@Body() adminManagement: AdminManagement): Promise<string> {
     const { currentAdminEmail, targetAdminEmail} = adminManagement;
 
@@ -68,7 +73,7 @@ export class AccountUserController {
     return 'ok';
   }
 
-  @Post('removeAdmin')
+  @Put('removeAdmin')
   async removeAdmin(@Body() adminManagement: AdminManagement): Promise<string> {
     const { currentAdminEmail, targetAdminEmail} = adminManagement;
 

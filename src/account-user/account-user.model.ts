@@ -1,8 +1,15 @@
 import { DataTypes } from 'sequelize';
-import { Column, Model, Table, PrimaryKey, AutoIncrement, HasOne } from 'sequelize-typescript';
+import { Column, Model, Table, PrimaryKey, AutoIncrement, HasOne, HasMany } from 'sequelize-typescript';
 import { AccountAuthModel } from '../account-auth/account-auth.model';
 import { Address } from './interface/address';
+import { PagBankModel } from '../pagbank/pagbank.model';
 
+interface savedCard {
+  pagBankToken: string,
+  lastFourDigits: number,
+  expMonth: number,
+  expYear: number
+}
 @Table({
   tableName: 'account_user',
 })
@@ -54,6 +61,12 @@ export class AccountUserModel extends Model {
   isLegalPerson: boolean
 
   @Column({
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  })
+  card: savedCard
+
+  @Column({
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   })
@@ -65,8 +78,15 @@ export class AccountUserModel extends Model {
   })
   isDeleted: boolean
 
+
   @HasOne(() => AccountAuthModel, {
     foreignKey: 'accountUserId',
   })
   accountAuth: AccountAuthModel;
+
+  @HasMany(() => PagBankModel, {
+    foreignKey: 'accountUserId',
+    as: 'pagbankTransactions'
+  })
+  pagbankTransactions: PagBankModel[];
 }
