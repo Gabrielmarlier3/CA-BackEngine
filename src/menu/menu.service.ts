@@ -30,6 +30,7 @@ export class MenuService {
       }
     })
   }
+
   async getAllMeals():Promise <MenuModel[]> {
     return this.menuModel.findAll()
   }
@@ -48,7 +49,7 @@ export class MenuService {
     }
 
     const paddedId = nextId.toString().padStart(4, '0');
-    return `EX-${paddedId}`;
+    return `MNU-${paddedId}`;
   }
 
   async createMeal(name:string, description:string ,image:string ,price:number , available: boolean, userId: number){

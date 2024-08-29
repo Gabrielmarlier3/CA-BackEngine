@@ -1,13 +1,20 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { OrderRequest } from './Interface/createOrder';
 import { AccountUserService } from '../account-user/account-user.service';
 import { MenuService } from '../menu/menu.service';
 import { splitPhoneNumber } from '../shared/helpers/splitNumber';
 import { HttpService } from '@nestjs/axios';
+import { getFormattedExpirationDate } from '../shared/helpers/getFormattedExpirationDate';
+import { InjectModel } from '@nestjs/sequelize';
+import { PagBankModel } from './pagbank.model';
+import { PaymentMethod } from './dto/PaymentOrderCredit';
+import { AccountUserModel } from '../account-user/account-user.model';
+import { CreateOrderResponse } from './Interface/createOrderResponse';
+import { PaymentOrderResponse } from './Interface/paymentOrderResponse';
 
 @Injectable()
 export class PagbankService {
   constructor(
+    @InjectModel(PagBankModel) private pagBankModel: typeof PagBankModel,
     private accountUserService: AccountUserService,
     private menuService: MenuService,
     private httpService: HttpService,
@@ -15,8 +22,28 @@ export class PagbankService {
 
   private readonly logger = new Logger(PagbankService.name)
 
+  async generateUniqueIdentifier(): Promise<string> {
+    const lastItem = await this.pagBankModel.findOne({
+      order: [['id', 'DESC']]
+    });
 
-  async createOrder(foodIdentifiers: string[], quantities: number[], cpfCnpj: string): Promise<OrderRequest | undefined> {
+    let nextId = 1;
+
+    if (lastItem) {
+      const lastIdentifier = lastItem.identifier;
+      const numericPart = parseInt(lastIdentifier.split('-')[1], 10);
+      nextId = numericPart + 1;
+    }
+
+    const paddedId = nextId.toString().padStart(8, '0');
+    return `ORD-${paddedId}`;
+  }
+
+
+  //this method need trigger when the user close the shopping cart, then in that response will have the code that we need to use in payingOrder
+  //first we need send the food identifier like { EX-0001, EX-0010 } and the quantities { 2 , 1 }, so will have 2 EX-0001 and 1 EX-0010
+  //for pix payment method, just this function will resolve
+  async createOrder(foodIdentifiers: string[], quantities: number[], cpfCnpj: string): Promise<CreateOrderResponse> {
     const account = await this.accountUserService.getAccountUserByCpfCnpj(cpfCnpj)
 
     if(!account) {
@@ -24,6 +51,8 @@ export class PagbankService {
     }
 
     const items = [];
+    let totalAmount = 0;
+
     for (let i = 0; i < foodIdentifiers.length; i++) {
       const foodDetails = await this.menuService.getMealInformation(foodIdentifiers[i]);
 
@@ -31,17 +60,23 @@ export class PagbankService {
         throw new HttpException(`Meal with identifier ${foodIdentifiers[i]} not found`, HttpStatus.NOT_FOUND);
       }
 
+      const itemTotal = foodDetails.price * quantities[i];
+
       items.push({
         reference_id: foodDetails.identifier,
         name: foodDetails.name,
         quantity: quantities[i],
         unit_amount: foodDetails.price,
+        item_total: itemTotal
       });
+
+      totalAmount += itemTotal;
     }
+
 
     const url = `/order`
     const body = {
-      reference_id: foodIdentifiers.join('-'),
+      reference_id: await this.generateUniqueIdentifier(),
       customer: {
         name: account.name,
         email: account.email,
@@ -58,11 +93,74 @@ export class PagbankService {
       country: account.address.country ,
       postal_code: account.address.postal_code
       },
+      qr_codes: {
+        amount: totalAmount,
+        //will expire 1 hour later
+        expiration_date: getFormattedExpirationDate()
+      }
     }
 
     try {
-      const response = await this.httpService.axiosRef.post<OrderRequest>(url, body);
-      return response.data;
+      const { data } = await this.httpService.axiosRef.post<CreateOrderResponse>(url, body);
+
+      await this.pagBankModel.create({
+        pagbankId: data.id,
+        orderInfo: {
+          totalAmount: totalAmount,
+          foodIdentifiers: foodIdentifiers.join('-'),
+        },
+        identifier: data.reference_id,
+      })
+
+      //here will send to front end the order id, need come back to pay
+      return data as CreateOrderResponse;
+
+    }catch (error) {
+      this.logger.error(error)
+      return undefined
+    }
+  }
+
+  //todo: finalize this method
+  async paymentWithSaveCreditCard(orderId: string, cvv: string):Promise <PaymentOrderResponse>{
+    const order = await this.pagBankModel.findOne({
+      rejectOnEmpty: undefined,
+      where:{
+        orderId: orderId,
+      },
+      include: [{
+        model: AccountUserModel,
+        as: 'user'
+      }]
+    });
+
+    const url = `/orders/${orderId}/pay`
+    const body = {
+      charges: [{
+        reference_id: order.identifier,
+        description: `payment of ${order.orderInfo.foodIdentifiers}`,
+        amount:{
+          value: order.orderInfo.totalAmount,
+          currency: 'BRL'
+        },
+        // payment_method: {
+        //   type: "CREDIT_CARD",
+        //   installments: installments,
+        //   capture: true,
+        //   soft_descriptor: soft_descriptor,
+        //   card: {
+        //     id: order.user.cardPagBankToken,
+        //     security_code: cvv
+        //   },
+        // }
+      }]
+    }
+
+    try {
+      const { data } = await this.httpService.axiosRef.post<PaymentOrderResponse>(url, body);
+
+      //todo: salvar oque precisa ser salvo no banco de dados
+              return data as PaymentOrderResponse ;
 
     }catch (error) {
       this.logger.error(error)
@@ -71,20 +169,93 @@ export class PagbankService {
 
   }
 
-  async paymentOrderPix(){
 
+  //need test, but teoricamente working
+  async paymentOrderCreditCard(orderId: string, payment: PaymentMethod): Promise<PaymentOrderResponse> {
+    const { installments, soft_descriptor, card } = payment;
+
+    const order = await this.pagBankModel.findOne({
+      rejectOnEmpty: undefined,
+      where: { orderId },
+      include: [{
+        model: AccountUserModel,
+        as: 'user'
+      }]
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    const url = `/orders/${orderId}/pay`;
+    const body = {
+      charges: [{
+        reference_id: order.identifier,
+        description: `payment of ${order.orderInfo.foodIdentifiers}`,
+        amount: {
+          value: order.orderInfo.totalAmount,
+          currency: 'BRL'
+        },
+        payment_method: {
+          type: "CREDIT_CARD",
+          installments,
+          capture: true,
+          soft_descriptor,
+          card
+        }
+      }]
+    };
+
+    try {
+      const { data } = await this.httpService.axiosRef.post<PaymentOrderResponse>(url, body);
+
+      // Function tha can save the card for future use
+      if (card.store) {
+        const charge = data.charges[0];
+        await this.accountUserService.savePagBankToken(
+          order.user.cpfCnpj,
+          charge.payment_method.card.id,
+          charge.payment_method.card.last_digits,
+          charge.payment_method.card.exp_month,
+          charge.payment_method.card.exp_year
+        );
+      }
+
+
+      return data as PaymentOrderResponse;
+
+    } catch (error) {
+      this.logger.error('Error processing payment:', error);
+      throw new Error('Payment processing failed');
+    }
   }
 
-  async paymentOrderCreditCard(){
 
+  //todo: search and integrate this method
+  async paymentOrderDebitCard(orderId: string, card: PaymentMethod):Promise <PaymentOrderResponse>{
+    const order = await this.pagBankModel.findOne({
+      rejectOnEmpty: undefined,
+      where:{
+        orderId: orderId,
+      },
+      include: [{
+        model: AccountUserModel,
+        as: 'user'
+      }]
+    });
+
+    return
   }
 
-  async paymentOrderDebitCard(){
 
+  //todo: search and integrate this method
+  async createOrderGooglePay(){
+    //a
   }
 
-  async createOrderGooglePay(){}
-
-  async paymentOrderGooglePay(){}
+  //todo: search and integrate this method
+  async paymentOrderGooglePay(){
+    //a
+  }
 }
 

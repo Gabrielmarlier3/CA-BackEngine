@@ -91,6 +91,26 @@ export class AccountUserService {
     }
   }
 
+  async savePagBankToken(cpfCnpj: string, pagBankToken: string, lastFourDigits: string, expMonth: number, expYear: number): Promise<void> {
+    const account = await this.accountModel.findOne({
+      rejectOnEmpty: undefined,
+      where: {
+        cpfCnpj: cpfCnpj,
+      }
+    })
+
+    if(account && pagBankToken && lastFourDigits && expMonth && expYear){
+      await account.update({
+        card: {
+          pagBankToken,
+          lastFourDigits,
+          expMonth,
+          expYear
+        }
+      })
+    }
+  }
+
   async updateAccountUser(accountId: number, email?: string, name?: string, telephoneNumber?:string ): Promise<void> {
     const account = await this.getAccountUserById(accountId)
 
@@ -189,6 +209,7 @@ export class AccountUserService {
         })
         return;
       }
+
       throw new HttpException('Failed to remove admin, account does not exist', HttpStatus.BAD_REQUEST);
     }
 
