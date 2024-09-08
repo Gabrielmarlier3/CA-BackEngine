@@ -40,7 +40,7 @@ export class EmailService {
 
       if (info) {
         const emailCode = await this.emailModel.findOne({
-          rejectOnEmpty: undefined,
+
           where: { accountAuthId: accountAuth.id },
         });
         if (!emailCode) {
@@ -64,7 +64,7 @@ export class EmailService {
   async verifyCode(accountAuth: AccountAuthModel, refactorCode): Promise<boolean> {
     try {
       const code = await this.emailModel.findOne({
-        rejectOnEmpty: undefined,
+
         where: { recovery_key: refactorCode, accountAuthId: accountAuth.id },
       });
       if (code) {
@@ -76,7 +76,7 @@ export class EmailService {
   }
 
   async deprecateCode(accountAuthId: number): Promise<void> {
-    const recoveryCode = await this.emailModel.findOne({rejectOnEmpty: undefined,where: {accountAuthId: accountAuthId}});
+    const recoveryCode = await this.emailModel.findOne({where: {accountAuthId: accountAuthId}});
 
     if(recoveryCode){
       await recoveryCode.update({

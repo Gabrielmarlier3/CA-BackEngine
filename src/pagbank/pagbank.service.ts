@@ -114,7 +114,7 @@ export class PagbankService {
 
   async paymentWithSaveCreditCard(orderId: string, cvv: string):Promise <PaymentOrderResponse>{
     const order = await this.pagBankModel.findOne({
-      rejectOnEmpty: undefined,
+
       where:{
         orderId: orderId,
       },
@@ -163,7 +163,7 @@ export class PagbankService {
     const { installments, soft_descriptor, card } = payment;
 
     const order = await this.pagBankModel.findOne({
-      rejectOnEmpty: undefined,
+
       where: { orderId },
       include: [{
         model: AccountUserModel,

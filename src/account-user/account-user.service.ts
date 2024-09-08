@@ -18,11 +18,11 @@ export class AccountUserService {
 
   async getAccountUserByCpfCnpj(cpfCnpj: string): Promise<AccountUserModel> {
     const account =  await this.accountModel.findOne({
-      rejectOnEmpty: undefined,
       where: {
         cpfCnpj: cpfCnpj,
       },
     });
+
     if(account){
       return account
     }
@@ -31,7 +31,7 @@ export class AccountUserService {
 
   async getAccountUserById(userId: number){
     const account = this.accountModel.findOne({
-      rejectOnEmpty: undefined,
+
       where: {
         id: userId
       }
@@ -44,7 +44,7 @@ export class AccountUserService {
 
   async getAccountUserByEmail(email: string){
     const account = this.accountModel.findOne({
-      rejectOnEmpty: undefined,
+
       where: {
         email: email
       }
@@ -93,7 +93,7 @@ export class AccountUserService {
 
   async savePagBankToken(cpfCnpj: string, pagBankToken: string, lastFourDigits: string, expMonth: number, expYear: number): Promise<void> {
     const account = await this.accountModel.findOne({
-      rejectOnEmpty: undefined,
+
       where: {
         cpfCnpj: cpfCnpj,
       }
@@ -146,7 +146,7 @@ export class AccountUserService {
 
   async deactivateAccount(email: string, password: string, ): Promise<void> {
     const account = await this.accountModel.findOne({
-      rejectOnEmpty: undefined,
+
       where: {
         email: email
       },
@@ -169,13 +169,13 @@ export class AccountUserService {
 
   async addAdmin(currentAdminEmail: string, newAdminEmail:string): Promise<void> {
     const account = await this.accountModel.findOne({
-      rejectOnEmpty: undefined,
+
       where: { email: currentAdminEmail }
     });
 
     if(account.isAdmin){
       const newAccount = await this.accountModel.findOne({
-        rejectOnEmpty: undefined,
+
         where: {email: newAdminEmail}
       });
 
@@ -193,13 +193,13 @@ export class AccountUserService {
 
   async removeAdmin(currentAdminEmail: string, targetAdminEmail: string): Promise<void> {
     const currentAdminAccount = await this.accountModel.findOne({
-      rejectOnEmpty: undefined,
+
       where: { email: currentAdminEmail }
     });
 
     if (currentAdminAccount.isAdmin) {
       const targetAdminAccount = await this.accountModel.findOne({
-        rejectOnEmpty: undefined,
+
         where: { email: targetAdminEmail }
       });
 
