@@ -103,15 +103,6 @@ export class PagbankService {
     try {
       const { data } = await this.httpService.axiosRef.post<CreateOrderResponse>(url, body);
 
-      await this.pagBankModel.create({
-        pagbankId: data.id,
-        orderInfo: {
-          totalAmount: totalAmount,
-          foodIdentifiers: foodIdentifiers.join('-'),
-        },
-        identifier: data.reference_id,
-      })
-
       //here will send to front end the order id, need come back to pay
       return data as CreateOrderResponse;
 
@@ -121,7 +112,6 @@ export class PagbankService {
     }
   }
 
-  //todo: finalize this method
   async paymentWithSaveCreditCard(orderId: string, cvv: string):Promise <PaymentOrderResponse>{
     const order = await this.pagBankModel.findOne({
       rejectOnEmpty: undefined,
@@ -143,28 +133,26 @@ export class PagbankService {
           value: order.orderInfo.totalAmount,
           currency: 'BRL'
         },
-        // payment_method: {
-        //   type: "CREDIT_CARD",
-        //   installments: installments,
-        //   capture: true,
-        //   soft_descriptor: soft_descriptor,
-        //   card: {
-        //     id: order.user.cardPagBankToken,
-        //     security_code: cvv
-        //   },
-        // }
+        payment_method: {
+          type: "CREDIT_CARD",
+          installments: 1,
+          capture: true,
+          soft_descriptor: "chame aki",
+          card: {
+            id: order.user.card.pagBankToken,
+            security_code: cvv
+          },
+        }
       }]
     }
 
     try {
       const { data } = await this.httpService.axiosRef.post<PaymentOrderResponse>(url, body);
 
-      //todo: salvar oque precisa ser salvo no banco de dados
-              return data as PaymentOrderResponse ;
+      return data as PaymentOrderResponse ;
 
     }catch (error) {
-      this.logger.error(error)
-      return undefined
+      return error
     }
 
   }
@@ -228,23 +216,6 @@ export class PagbankService {
       this.logger.error('Error processing payment:', error);
       throw new Error('Payment processing failed');
     }
-  }
-
-
-  //todo: search and integrate this method
-  async paymentOrderDebitCard(orderId: string, card: PaymentMethod):Promise <PaymentOrderResponse>{
-    const order = await this.pagBankModel.findOne({
-      rejectOnEmpty: undefined,
-      where:{
-        orderId: orderId,
-      },
-      include: [{
-        model: AccountUserModel,
-        as: 'user'
-      }]
-    });
-
-    return
   }
 
 
