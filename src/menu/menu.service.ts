@@ -24,7 +24,7 @@ export class MenuService {
 
   async getMealInformation(foodIdentifier: string):Promise <MenuModel> {
     return this.menuModel.findOne({
-      rejectOnEmpty: undefined,
+
       where:{
         identifier: foodIdentifier
       }
@@ -57,7 +57,7 @@ export class MenuService {
 
     if(valid){
       const existingMenu = await this.menuModel.findOne({
-        rejectOnEmpty: undefined,
+
         where: {name: name}
       })
 
@@ -84,7 +84,7 @@ export class MenuService {
 
     if(valid) {
       const existingMenu = await this.menuModel.findOne({
-        rejectOnEmpty: undefined,
+
         where: { identifier: foodIdentifier },
       });
 
@@ -121,7 +121,7 @@ export class MenuService {
     const valid = await this.userVerification(userId)
     if(valid) {
       const existingMenu = await this.menuModel.findOne({
-        rejectOnEmpty: undefined,
+
         where: { identifier: foodIdentifier },
       })
 
