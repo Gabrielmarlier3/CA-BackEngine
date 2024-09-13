@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { Column, Model, Table, PrimaryKey, AutoIncrement, HasOne, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import { Column, Model, Table, PrimaryKey, AutoIncrement, ForeignKey, BelongsTo } from 'sequelize-typescript';
 import { AccountUserModel } from '../account-user/account-user.model';
 
 interface OrderInfo {

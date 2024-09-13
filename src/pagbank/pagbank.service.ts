@@ -39,7 +39,6 @@ export class PagbankService {
     return `ORD-${paddedId}`;
   }
 
-
   //this method need trigger when the user close the shopping cart, then in that response will have the code that we need to use in payingOrder
   //first we need send the food identifier like { EX-0001, EX-0010 } and the quantities { 2 , 1 }, so will have 2 EX-0001 and 1 EX-0010
   //for pix payment method, just this function will resolve
@@ -72,11 +71,11 @@ export class PagbankService {
 
       totalAmount += itemTotal;
     }
-
+    const uniqueIdentifier = await this.generateUniqueIdentifier()
 
     const url = `/order`
     const body = {
-      reference_id: await this.generateUniqueIdentifier(),
+      reference_id: uniqueIdentifier,
       customer: {
         name: account.name,
         email: account.email,
@@ -103,6 +102,12 @@ export class PagbankService {
     try {
       const { data } = await this.httpService.axiosRef.post<CreateOrderResponse>(url, body);
 
+      await this.pagBankModel.create({
+        pagbankId: data.id,
+        totalAmount: totalAmount,
+        foodIdentifiers: foodIdentifiers,
+        identifier: uniqueIdentifier
+      })
       //here will send to front end the order id, need come back to pay
       return data as CreateOrderResponse;
 
@@ -112,59 +117,13 @@ export class PagbankService {
     }
   }
 
-  async paymentWithSaveCreditCard(orderId: string, cvv: string):Promise <PaymentOrderResponse>{
-    const order = await this.pagBankModel.findOne({
-
-      where:{
-        orderId: orderId,
-      },
-      include: [{
-        model: AccountUserModel,
-        as: 'user'
-      }]
-    });
-
-    const url = `/orders/${orderId}/pay`
-    const body = {
-      charges: [{
-        reference_id: order.identifier,
-        description: `payment of ${order.orderInfo.foodIdentifiers}`,
-        amount:{
-          value: order.orderInfo.totalAmount,
-          currency: 'BRL'
-        },
-        payment_method: {
-          type: "CREDIT_CARD",
-          installments: 1,
-          capture: true,
-          soft_descriptor: "chame aki",
-          card: {
-            id: order.user.card.pagBankToken,
-            security_code: cvv
-          },
-        }
-      }]
-    }
-
-    try {
-      const { data } = await this.httpService.axiosRef.post<PaymentOrderResponse>(url, body);
-
-      return data as PaymentOrderResponse ;
-
-    }catch (error) {
-      return error
-    }
-
-  }
-
-
   //need test, but teoricamente working
-  async paymentOrderCreditCard(orderId: string, payment: PaymentMethod): Promise<PaymentOrderResponse> {
+  async paymentOrderCreditCard(orderId: string, payment: PaymentMethod, useSaveCard: boolean): Promise<PaymentOrderResponse> {
     const { installments, soft_descriptor, card } = payment;
 
     const order = await this.pagBankModel.findOne({
 
-      where: { orderId },
+      where: { pagbankId: orderId },
       include: [{
         model: AccountUserModel,
         as: 'user'
@@ -184,7 +143,17 @@ export class PagbankService {
           value: order.orderInfo.totalAmount,
           currency: 'BRL'
         },
-        payment_method: {
+        payment_method: useSaveCard ? {
+          type: "CREDIT_CARD",
+          installments: 1,
+          capture: true,
+          soft_descriptor: "chame aki",
+          card: {
+            id: order.user.card.pagBankToken,
+            exp_month: order.user.card.expMonth,
+            exp_year: order.user.card.expYear
+          }
+        } : {
           type: "CREDIT_CARD",
           installments,
           capture: true,
@@ -193,6 +162,7 @@ export class PagbankService {
         }
       }]
     };
+
 
     try {
       const { data } = await this.httpService.axiosRef.post<PaymentOrderResponse>(url, body);
@@ -204,29 +174,18 @@ export class PagbankService {
           order.user.cpfCnpj,
           charge.payment_method.card.id,
           charge.payment_method.card.last_digits,
-          charge.payment_method.card.exp_month,
-          charge.payment_method.card.exp_year
+          Number(charge.payment_method.card.exp_month),
+          Number(charge.payment_method.card.exp_year)
         );
       }
 
 
-      return data as PaymentOrderResponse;
+      return data;
 
     } catch (error) {
       this.logger.error('Error processing payment:', error);
       throw new Error('Payment processing failed');
     }
-  }
-
-
-  //todo: search and integrate this method
-  async createOrderGooglePay(){
-    //a
-  }
-
-  //todo: search and integrate this method
-  async paymentOrderGooglePay(){
-    //a
   }
 }
 
