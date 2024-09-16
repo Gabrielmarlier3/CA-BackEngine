@@ -6,7 +6,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { EmailModel } from './email.model';
 import { AccountAuthModel } from '../account-auth/account-auth.model';
 import { isMD5 } from 'validator';
-import { emailDesign } from './interface/email-design';
+import { IEmailDesign } from './interface/IEmailDesign';
 
 @Injectable()
 export class EmailService {
@@ -31,7 +31,7 @@ export class EmailService {
       from: this.configService.get<string>('EMAIL_USER'),
       to: to,
       subject: 'Código para trocar sua senha',
-      html: emailDesign(accountAuth.accountUser.name, recoveryKey),
+      html: IEmailDesign(accountAuth.accountUser.name, recoveryKey),
     };
 
 

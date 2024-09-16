@@ -6,10 +6,10 @@ import { HttpService } from '@nestjs/axios';
 import { getFormattedExpirationDate } from '../shared/helpers/getFormattedExpirationDate';
 import { InjectModel } from '@nestjs/sequelize';
 import { PagBankModel } from './pagbank.model';
-import { PaymentMethod } from './dto/PaymentOrderCredit';
+import { PaymentMethod } from './dto/PaymentOrderCreditDTO';
 import { AccountUserModel } from '../account-user/account-user.model';
-import { CreateOrderResponse } from './Interface/createOrderResponse';
-import { PaymentOrderResponse } from './Interface/paymentOrderResponse';
+import { ICreateOrderResponse } from './Interface/ICreateOrderResponse';
+import { IPaymentOrderResponse } from './Interface/IPaymentOrderResponse';
 
 @Injectable()
 export class PagbankService {
@@ -42,7 +42,7 @@ export class PagbankService {
   //this method need trigger when the user close the shopping cart, then in that response will have the code that we need to use in payingOrder
   //first we need send the food identifier like { EX-0001, EX-0010 } and the quantities { 2 , 1 }, so will have 2 EX-0001 and 1 EX-0010
   //for pix payment method, just this function will resolve
-  async createOrder(foodIdentifiers: string[], quantities: number[], cpfCnpj: string): Promise<CreateOrderResponse> {
+  async createOrder(foodIdentifiers: string[], quantities: number[], cpfCnpj: string): Promise<ICreateOrderResponse> {
     const account = await this.accountUserService.getAccountUserByCpfCnpj(cpfCnpj)
 
     if(!account) {
@@ -100,7 +100,7 @@ export class PagbankService {
     }
 
     try {
-      const { data } = await this.httpService.axiosRef.post<CreateOrderResponse>(url, body);
+      const { data } = await this.httpService.axiosRef.post<ICreateOrderResponse>(url, body);
 
       await this.pagBankModel.create({
         pagbankId: data.id,
@@ -109,7 +109,7 @@ export class PagbankService {
         identifier: uniqueIdentifier
       })
       //here will send to front end the order id, need come back to pay
-      return data as CreateOrderResponse;
+      return data as ICreateOrderResponse;
 
     }catch (error) {
       this.logger.error(error)
@@ -118,7 +118,7 @@ export class PagbankService {
   }
 
   //need test, but teoricamente working
-  async paymentOrderCreditCard(orderId: string, payment: PaymentMethod, useSaveCard: boolean): Promise<PaymentOrderResponse> {
+  async paymentOrderCreditCard(orderId: string, payment: PaymentMethod, useSaveCard: boolean): Promise<IPaymentOrderResponse> {
     const { installments, soft_descriptor, card } = payment;
 
     const order = await this.pagBankModel.findOne({
@@ -165,7 +165,7 @@ export class PagbankService {
 
 
     try {
-      const { data } = await this.httpService.axiosRef.post<PaymentOrderResponse>(url, body);
+      const { data } = await this.httpService.axiosRef.post<IPaymentOrderResponse>(url, body);
 
       // Function tha can save the card for future use
       if (card.store) {

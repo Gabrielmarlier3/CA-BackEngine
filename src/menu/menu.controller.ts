@@ -1,16 +1,14 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Logger, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Post, Put } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { MenuModel } from './menu.model';
-import { CreateMenuDto } from './dto/createMenuDto';
-import { UpdateMenuDto } from './dto/updateMenuDto';
-import { DeleteMenuDto } from './dto/deleteMenuDto';
+import { CreateMenuDTO } from './dto/CreateMenuDTO';
+import { UpdateMenuDTO } from './dto/UpdateMenuDTO';
+import { DeleteMenuDTO } from './dto/DeleteMenuDTO';
 
 @Controller('menu')
 export class MenuController {
 
   constructor(private readonly menuService: MenuService) {}
-
-  logger = new Logger(MenuController.name);
 
   @Get("allMeal")
   async allMeal(): Promise<MenuModel[]> {
@@ -19,51 +17,33 @@ export class MenuController {
 
   @Get(':foodIdentifier')
   async getMealInformation(@Param('foodIdentifier') foodIdentifier: string): Promise<MenuModel> {
-    try {
-      const meal = await this.menuService.getMealInformation(foodIdentifier)
+    const meal = await this.menuService.getMealInformation(foodIdentifier)
 
-      if (!meal) {
-        throw new HttpException('Meal not found', HttpStatus.NOT_FOUND);
-      }
-
-      return meal;
-
-    } catch (error) {
-      throw new HttpException('Failed to retrieve meal information', HttpStatus.INTERNAL_SERVER_ERROR);
+    if (!meal) {
+      throw new HttpException('Meal not found', HttpStatus.NOT_FOUND);
     }
+
+    return meal;
   }
 
   @Post('createMeal')
-  async createMeal(@Body() createMenuDto: CreateMenuDto):Promise <string>{
-    try {
-      const { name, description, image, price, available, userId } = createMenuDto;
-      await this.menuService.createMeal(name, description, image, price, available, userId);
-      return "ok"
-    } catch (e) {
-      this.logger.error(e)
-      throw new HttpException('Failed to create meal', HttpStatus.BAD_REQUEST);
-    }
+  async createMeal(@Body() createMenuDto: CreateMenuDTO):Promise <void>{
+    const { name, description, image, price, available, userId } = createMenuDto;
+    await this.menuService.createMeal(name, description, image, price, available, userId);
   }
 
   @Put('updateMeal')
-  async updateMeal(@Body() updateMenuDto: UpdateMenuDto):Promise<string> {
+  async updateMeal(@Body() updateMenuDto: UpdateMenuDTO):Promise<void> {
     const { foodIdentifier, name ,description, image, price, available, userId } = updateMenuDto;
     await this.menuService.updateMeal(foodIdentifier, name, description, image, price, available, userId)
-    return 'ok'
   }
 
   @Delete('deleteMeal')
-  async deleteMeal(@Body() deleteMenuDto: DeleteMenuDto):Promise<string> {
-    try {
-      const { foodIdentifier, userId } = deleteMenuDto;
-      await this.menuService.removeMeal(foodIdentifier, userId);
-      return 'ok'
-    } catch (e) {
-      this.logger.error(e)
-      throw new HttpException('Failed to delete meal', HttpStatus.BAD_REQUEST);
-    }
+  async deleteMeal(@Body() deleteMenuDto: DeleteMenuDTO):Promise<HttpStatus.NO_CONTENT> {
+    const { foodIdentifier, userId } = deleteMenuDto;
+    await this.menuService.removeMeal(foodIdentifier, userId);
+    return HttpStatus.NO_CONTENT
   }
-
 }
 
 

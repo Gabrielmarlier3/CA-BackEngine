@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { AccountAuthModel } from '../account-auth/account-auth.model';
 import { AccountAuthService } from '../account-auth/account-auth.service';
 import { Md5 } from 'ts-md5';
-import { Address } from './interface/address';
+import { IAddress } from './interface/IAddress';
 import { Op } from 'sequelize';
 
 @Injectable()
@@ -55,7 +55,7 @@ export class AccountUserService {
     this.logger.error(`Account user not found`);
   }
 
-  async createAccountUser(username: string, password: string ,email: string, telephone: string , cpfCnpj: string, isLegalPerson: boolean, address: Address): Promise<void> {
+  async createAccountUser(username: string, password: string ,email: string, telephone: string , cpfCnpj: string, isLegalPerson: boolean, address: IAddress): Promise<void> {
     const existingAccount = await this.accountModel.findOne({
       where: {
         [Op.or]: [
@@ -111,29 +111,46 @@ export class AccountUserService {
     }
   }
 
-  async updateAccountUser(accountId: number, email?: string, name?: string, telephoneNumber?:string ): Promise<void> {
-    const account = await this.getAccountUserById(accountId)
+  //testar isso aqui
+  async updateAccountUser(
+    accountId: number,
+    email?: string,
+    name?: string,
+    telephoneNumber?: string
+  ): Promise<void> {
+    const transaction = await this.accountModel.sequelize.transaction();
 
-    if(account){
-      const updateData: any = {};
+    try {
+      const account = await this.getAccountUserById(accountId);
 
-      if (email !== undefined) {
-        updateData.email = email;
+      if (account) {
+        const updateData: any = {};
+
+        if (email !== undefined) {
+          updateData.email = email;
+        }
+
+        if (telephoneNumber !== undefined) {
+          updateData.telephoneNumber = telephoneNumber;
+        }
+
+        if (name !== undefined) {
+          updateData.name = name;
+        }
+
+        await account.update(updateData, { transaction });
       }
 
-      if (telephoneNumber !== undefined) {
-        updateData.telephoneNumber = telephoneNumber;
-      }
-
-      if (name !== undefined) {
-        updateData.name = name;
-      }
-
-      await account.update(updateData);
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      this.logger.error('Error updating account: ', error);
+      throw new HttpException('Error updating account', HttpStatus.BAD_REQUEST);
     }
   }
 
-  async changeAddress(accountId: number, address: Address): Promise<void> {
+
+  async changeAddress(accountId: number, address: IAddress): Promise<void> {
     const account = await this.getAccountUserById(accountId)
 
     if(account){

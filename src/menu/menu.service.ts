@@ -24,7 +24,6 @@ export class MenuService {
 
   async getMealInformation(foodIdentifier: string):Promise <MenuModel> {
     return this.menuModel.findOne({
-
       where:{
         identifier: foodIdentifier
       }
@@ -65,27 +64,39 @@ export class MenuService {
         throw new HttpException("already exist a meal with this name", HttpStatus.BAD_REQUEST);
       }
 
-      await this.menuModel.create({
-        name,
-        description,
-        image,
-        price,
-        available,
-        identifier: await this.generateUniqueIdentifier()
-      })
+      try {
+        await this.menuModel.create({
+          name,
+          description,
+          image,
+          price,
+          available,
+          identifier: await this.generateUniqueIdentifier(),
+        });
+      } catch (e) {
+        this.logger.error('error creating meal with this name: ', e);
+        throw new HttpException('Error creating meal with this name', HttpStatus.BAD_REQUEST);
+      }
       return
     }
 
     throw new HttpException('User dont have privilege', HttpStatus.UNAUTHORIZED)
   }
 
+  //TODO: testar isso aqui
   async updateMeal(foodIdentifier:string, name: string, description:string, image:string, price:number, available:boolean, userId:number ){
-    const valid = await this.userVerification(userId)
+    const transaction = await this.menuModel.sequelize.transaction();
 
-    if(valid) {
+    try {
+      const valid = await this.userVerification(userId);
+
+      if(!valid){
+        throw new HttpException('User does not have privilege', HttpStatus.UNAUTHORIZED);
+      }
+
       const existingMenu = await this.menuModel.findOne({
-
         where: { identifier: foodIdentifier },
+        transaction
       });
 
       if (existingMenu) {
@@ -105,16 +116,19 @@ export class MenuService {
           existingMenu.price = price;
         }
 
-        if (available !== true) {
-          existingMenu.available = false;
-        }
+        existingMenu.available = available;
 
-        await existingMenu.save();
+        await existingMenu.save({ transaction });
       }
-      return
-    }
-    throw new HttpException('User dont have privilege', HttpStatus.UNAUTHORIZED)
 
+      await transaction.commit();
+      return;
+
+
+    } catch (error) {
+      await transaction.rollback();
+      throw new HttpException('Failed to update meal', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async removeMeal(foodIdentifier: string, userId: number){

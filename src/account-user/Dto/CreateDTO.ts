@@ -1,9 +1,9 @@
 import { IsString, IsEmail, IsNotEmpty, IsBoolean, IsObject } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger'
-import { Address } from '../interface/address';
+import { IAddress } from '../interface/IAddress';
 
 
-export class CreateDto {
+export class CreateDTO {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
@@ -49,5 +49,5 @@ export class CreateDto {
   @ApiProperty({
     required: true,
   })
-  address: Address;
+  address: IAddress;
 }

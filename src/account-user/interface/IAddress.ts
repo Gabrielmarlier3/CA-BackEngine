@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class Address {
+export class IAddress {
   @ApiProperty({ example: 'Rua Arcos', description: 'Street name' })
   street: string;
 

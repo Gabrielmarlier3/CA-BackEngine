@@ -43,6 +43,7 @@ export class AccountAuthService {
       return account.password == Md5.hashStr(password);
     }
     catch(error){
+      this.logger.error(error)
       throw new HttpException('Login failed', HttpStatus.BAD_REQUEST);
     }
   }

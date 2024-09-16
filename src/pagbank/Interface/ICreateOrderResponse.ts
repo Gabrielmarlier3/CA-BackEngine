@@ -1,4 +1,4 @@
-export interface CreateOrderResponse {
+export interface ICreateOrderResponse {
   id: string;
   reference_id: string;
   created_at: string;

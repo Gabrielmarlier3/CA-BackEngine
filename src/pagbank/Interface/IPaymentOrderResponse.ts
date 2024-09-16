@@ -1,4 +1,4 @@
-export interface PaymentOrderResponse {
+export interface IPaymentOrderResponse {
   id: string;
   reference_id: string;
   created_at: string;

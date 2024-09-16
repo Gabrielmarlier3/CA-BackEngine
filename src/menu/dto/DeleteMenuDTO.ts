@@ -1,7 +1,7 @@
 import { IsString, IsEmail, IsNotEmpty, IsObject, IsNumber, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger'
 
-export class DeleteMenuDto {
+export class DeleteMenuDTO {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({

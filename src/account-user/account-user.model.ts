@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import { Column, Model, Table, PrimaryKey, AutoIncrement, HasOne, HasMany } from 'sequelize-typescript';
 import { AccountAuthModel } from '../account-auth/account-auth.model';
-import { Address } from './interface/address';
+import { IAddress } from './interface/IAddress';
 import { PagBankModel } from '../pagbank/pagbank.model';
 
 interface savedCard {
@@ -52,7 +52,7 @@ export class AccountUserModel extends Model {
     allowNull: false,
     type: DataTypes.JSONB,
   })
-  address: Address
+  address: IAddress
 
   @Column({
     allowNull: false,

@@ -1,4 +1,4 @@
-export function emailDesign(userName: string, recoveryKey: number): string {
+export function IEmailDesign(userName: string, recoveryKey: number): string {
   return `
       <!DOCTYPE html>
   <html>

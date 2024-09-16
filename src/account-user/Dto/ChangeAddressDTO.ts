@@ -1,9 +1,9 @@
 import { IsNotEmpty, IsNumber, IsObject } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger'
-import { Address } from '../interface/address';
+import { IAddress } from '../interface/IAddress';
 
 
-export class ChangeAddressDto {
+export class ChangeAddressDTO {
 
   @IsNotEmpty()
   @IsNumber()
@@ -17,5 +17,5 @@ export class ChangeAddressDto {
   @ApiProperty({
     required: true,
   })
-  address: Address;
+  address: IAddress;
 }

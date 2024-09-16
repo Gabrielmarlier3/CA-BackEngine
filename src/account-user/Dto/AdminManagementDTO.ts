@@ -2,7 +2,7 @@ import { IsString, IsEmail, IsNotEmpty,  IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger'
 
 
-export class AdminManagement {
+export class AdminManagementDTO {
   @IsNotEmpty()
   @IsEmail()
   @ApiProperty({
