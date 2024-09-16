@@ -10,71 +10,87 @@ import { Op } from 'sequelize';
 @Injectable()
 export class AccountUserService {
   constructor(
-    @InjectModel(AccountUserModel) private accountModel: typeof AccountUserModel,
+    @InjectModel(AccountUserModel)
+    private accountModel: typeof AccountUserModel,
     private readonly accountAuthService: AccountAuthService,
-    ) {}
+  ) {}
 
   logger = new Logger(AccountUserService.name);
 
   async getAccountUserByCpfCnpj(cpfCnpj: string): Promise<AccountUserModel> {
-    const account =  await this.accountModel.findOne({
+    const account = await this.accountModel.findOne({
       where: {
         cpfCnpj: cpfCnpj,
       },
     });
 
-    if(account){
-      return account
+    if (account) {
+      return account;
     }
     this.logger.error(`Account user not found`);
   }
 
-  async getAccountUserById(userId: number){
+  async getAccountUserById(userId: number) {
     const account = this.accountModel.findOne({
-
       where: {
-        id: userId
-      }
-    })
-    if(account){
-      return account
+        id: userId,
+      },
+    });
+    if (account) {
+      return account;
     }
     this.logger.error(`Account user not found`);
   }
 
-  async getAccountUserByEmail(email: string){
+  async getAccountUserByEmail(email: string) {
     const account = this.accountModel.findOne({
-
       where: {
-        email: email
-      }
-    })
-    if(account){
-      return account
+        email: email,
+      },
+    });
+    if (account) {
+      return account;
     }
     this.logger.error(`Account user not found`);
   }
 
-  async createAccountUser(username: string, password: string ,email: string, telephone: string , cpfCnpj: string, isLegalPerson: boolean, address: IAddress): Promise<void> {
+  async createAccountUser(
+    username: string,
+    password: string,
+    email: string,
+    telephone: string,
+    cpfCnpj: string,
+    isLegalPerson: boolean,
+    address: IAddress,
+  ): Promise<void> {
     const existingAccount = await this.accountModel.findOne({
       where: {
         [Op.or]: [
           { cpfCnpj: cpfCnpj },
           { email: email },
-          { telephoneNumber: telephone }
-        ]
-      }
+          { telephoneNumber: telephone },
+        ],
+      },
     });
 
     if (existingAccount) {
       if (existingAccount.cpfCnpj === cpfCnpj) {
-        throw new HttpException('Account with this CPF/CNPJ already exists', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Account with this CPF/CNPJ already exists',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       if (existingAccount.email === email) {
-        throw new HttpException('Account with this email already exists', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Account with this email already exists',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       if (existingAccount.telephoneNumber === telephone) {
-        throw new HttpException('Account with this telephone number already exists', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Account with this telephone number already exists',
+          HttpStatus.BAD_REQUEST,
+        );
       }
     }
 
@@ -84,30 +100,35 @@ export class AccountUserService {
       cpfCnpj: cpfCnpj,
       telephoneNumber: telephone,
       isLegalPerson: isLegalPerson,
-      address
-    })
-    if(newAccount){
-      await this.accountAuthService.createPassword(password, newAccount.id)
+      address,
+    });
+    if (newAccount) {
+      await this.accountAuthService.createPassword(password, newAccount.id);
     }
   }
 
-  async savePagBankToken(cpfCnpj: string, pagBankToken: string, lastFourDigits: string, expMonth: number, expYear: number): Promise<void> {
+  async savePagBankToken(
+    cpfCnpj: string,
+    pagBankToken: string,
+    lastFourDigits: string,
+    expMonth: number,
+    expYear: number,
+  ): Promise<void> {
     const account = await this.accountModel.findOne({
-
       where: {
         cpfCnpj: cpfCnpj,
-      }
-    })
+      },
+    });
 
-    if(account && pagBankToken && lastFourDigits && expMonth && expYear){
+    if (account && pagBankToken && lastFourDigits && expMonth && expYear) {
       await account.update({
         card: {
           pagBankToken,
           lastFourDigits,
           expMonth,
-          expYear
-        }
-      })
+          expYear,
+        },
+      });
     }
   }
 
@@ -116,7 +137,7 @@ export class AccountUserService {
     accountId: number,
     email?: string,
     name?: string,
-    telephoneNumber?: string
+    telephoneNumber?: string,
   ): Promise<void> {
     const transaction = await this.accountModel.sequelize.transaction();
 
@@ -149,23 +170,24 @@ export class AccountUserService {
     }
   }
 
-
   async changeAddress(accountId: number, address: IAddress): Promise<void> {
-    const account = await this.getAccountUserById(accountId)
+    const account = await this.getAccountUserById(accountId);
 
-    if(account){
-      account.address = address
-      return
+    if (account) {
+      account.address = address;
+      return;
     }
 
-    throw new HttpException("fail to change address", HttpStatus.INTERNAL_SERVER_ERROR);
+    throw new HttpException(
+      'fail to change address',
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
 
-  async deactivateAccount(email: string, password: string, ): Promise<void> {
+  async deactivateAccount(email: string, password: string): Promise<void> {
     const account = await this.accountModel.findOne({
-
       where: {
-        email: email
+        email: email,
       },
       include: [
         {
@@ -175,63 +197,78 @@ export class AccountUserService {
       ],
     });
 
-    if(account.accountAuth.password == Md5.hashStr(password)){
+    if (account.accountAuth.password == Md5.hashStr(password)) {
       await account.update({
         isDeleted: true,
-      })
-      return
+      });
+      return;
     }
-    throw new HttpException('fail to deactivate account, password don`t match', HttpStatus.BAD_REQUEST);
+    throw new HttpException(
+      'fail to deactivate account, password don`t match',
+      HttpStatus.BAD_REQUEST,
+    );
   }
 
-  async addAdmin(currentAdminEmail: string, newAdminEmail:string): Promise<void> {
+  async addAdmin(
+    currentAdminEmail: string,
+    newAdminEmail: string,
+  ): Promise<void> {
     const account = await this.accountModel.findOne({
-
-      where: { email: currentAdminEmail }
+      where: { email: currentAdminEmail },
     });
 
-    if(account.isAdmin){
+    if (account.isAdmin) {
       const newAccount = await this.accountModel.findOne({
-
-        where: {email: newAdminEmail}
+        where: { email: newAdminEmail },
       });
 
-      if(newAccount){
+      if (newAccount) {
         await newAccount.update({
           isAdmin: true,
-        })
-        return
+        });
+        return;
       }
-      throw new HttpException('fail to add admin, account not exist', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'fail to add admin, account not exist',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    throw new HttpException('User dont have privilege', HttpStatus.UNAUTHORIZED)
+    throw new HttpException(
+      'User dont have privilege',
+      HttpStatus.UNAUTHORIZED,
+    );
   }
 
-  async removeAdmin(currentAdminEmail: string, targetAdminEmail: string): Promise<void> {
+  async removeAdmin(
+    currentAdminEmail: string,
+    targetAdminEmail: string,
+  ): Promise<void> {
     const currentAdminAccount = await this.accountModel.findOne({
-
-      where: { email: currentAdminEmail }
+      where: { email: currentAdminEmail },
     });
 
     if (currentAdminAccount.isAdmin) {
       const targetAdminAccount = await this.accountModel.findOne({
-
-        where: { email: targetAdminEmail }
+        where: { email: targetAdminEmail },
       });
 
       if (targetAdminAccount) {
         await targetAdminAccount.update({
           isAdmin: false,
-        })
+        });
         return;
       }
 
-      throw new HttpException('Failed to remove admin, account does not exist', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Failed to remove admin, account does not exist',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    throw new HttpException('User does not have the necessary privileges', HttpStatus.UNAUTHORIZED);
+    throw new HttpException(
+      'User does not have the necessary privileges',
+      HttpStatus.UNAUTHORIZED,
+    );
   }
-
-
 }
