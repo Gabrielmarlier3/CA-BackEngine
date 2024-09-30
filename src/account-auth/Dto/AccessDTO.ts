@@ -7,6 +7,7 @@ export class AccessDTO {
   @IsNotEmpty()
   @ApiProperty({
     required: true,
+    example: 'gabrielmarliere2005@gmail.com',
   })
   email: string;
 
@@ -14,6 +15,7 @@ export class AccessDTO {
   @IsString()
   @ApiProperty({
     required: true,
+    example: '123456',
   })
   password: string;
 

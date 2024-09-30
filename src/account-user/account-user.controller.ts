@@ -7,8 +7,13 @@ import { validateCPF } from '../shared/helpers/validate-cpf';
 import { DeleteDTO } from './Dto/DeleteDTO';
 import { AdminManagementDTO } from './Dto/AdminManagementDTO';
 import { ChangeAddressDTO } from './Dto/ChangeAddressDTO';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+function ApiExample(param: { summary: string; value: string }) {
+
+}
+
+@ApiTags('Account User')
 @Controller('account-user')
 export class AccountUserController {
 
@@ -17,9 +22,10 @@ export class AccountUserController {
 
   logger = new Logger('AccountUserController');
 
-  @ApiOperation({ summary: 'Endpoint to get the account information' })
+  @ApiOperation({ summary: 'Endpoint to get the account information'})
   @ApiResponse({ status: 201, description: 'Success.' })
   @ApiResponse({ status: 404, description: 'User account not found' })
+  @ApiParam({ name: 'email', example: 'gabrielmarliere2005@gmail.com', description: 'User email address' })
   @Get(':email')
   async getAccount(@Param('email') email: string) {
     return await this.service.getAccountUserByEmail(email);

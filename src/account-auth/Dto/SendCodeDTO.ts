@@ -6,6 +6,7 @@ export class SendCodeDTO {
   @IsEmail()
   @ApiProperty({
     required: true,
+    example: 'gabrielmarliere2005@gmail.com'
   })
   email: string;
 }

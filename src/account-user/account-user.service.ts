@@ -132,7 +132,6 @@ export class AccountUserService {
     }
   }
 
-  //todo: testar isso aqui
   async updateAccountUser(
     accountId: number,
     email?: string,
@@ -206,6 +205,7 @@ export class AccountUserService {
     );
   }
 
+  //todo: need this function create a new admin account without the need of a previous admin account, maybe create another endpoint to create a shop, and in this endpoint create a new admin account and only can be created if is using a cnpj
   async addAdmin(
     currentAdminEmail: string,
     newAdminEmail: string,

@@ -8,6 +8,7 @@ export class CreateDTO {
   @IsString()
   @ApiProperty({
       required: true,
+      example:'Gabriel Marliere',
   })
   name: string;
 
@@ -15,6 +16,7 @@ export class CreateDTO {
   @IsString()
   @ApiProperty({
     required: true,
+    example: '123456',
   })
   password: string;
 
@@ -22,6 +24,7 @@ export class CreateDTO {
   @IsString()
   @ApiProperty({
     required: true,
+    example: "919.945.258-86"
   })
   cpfCnpj: string;
 
@@ -29,6 +32,7 @@ export class CreateDTO {
   @IsEmail()
   @ApiProperty({
     required: true,
+    example: 'gabrielmarliere2005@gmail.com',
   })
   email: string
 
@@ -36,12 +40,14 @@ export class CreateDTO {
   @IsString()
   @ApiProperty({
     required: true,
+    example: '31994990939',
   })
   telephone: string;
 
   @IsBoolean()
   @ApiProperty({
     required: true,
+    example: false,
   })
   isLegalPerson: boolean
 

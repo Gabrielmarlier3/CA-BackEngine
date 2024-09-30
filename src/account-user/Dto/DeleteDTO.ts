@@ -6,6 +6,7 @@ export class DeleteDTO {
   @IsNotEmpty()
   @ApiProperty({
     required: true,
+    example: 'gabrielmarliere2005@gmail.com'
   })
   email: string;
 
@@ -13,7 +14,7 @@ export class DeleteDTO {
   @IsString()
   @ApiProperty({
     required: true,
+    example: '123456'
   })
   password: string;
-
 }

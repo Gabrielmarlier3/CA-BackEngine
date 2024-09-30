@@ -6,6 +6,7 @@ export class UpdateDTO {
   @IsNumber()
   @ApiProperty({
     required: false,
+    example: 1,
   })
   accountId: number;
 
@@ -13,6 +14,7 @@ export class UpdateDTO {
   @IsNumber()
   @ApiProperty({
     required: false,
+    example: "whatever number, brazilian numbers only",
   })
   telephoneNumber: string;
 
@@ -20,6 +22,7 @@ export class UpdateDTO {
   @IsEmail()
   @ApiProperty({
     required: true,
+    example: 'wherever email',
   })
   email: string
 
@@ -27,6 +30,7 @@ export class UpdateDTO {
   @IsEmail()
   @ApiProperty({
     required: false,
+    example: 'João rodrigues',
   })
   name: string
 

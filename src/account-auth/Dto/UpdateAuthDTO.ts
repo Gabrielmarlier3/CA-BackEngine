@@ -1,11 +1,12 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UpdateDTO {
+export class UpdateAuthDTO {
   @IsNotEmpty()
   @IsString()
   @ApiProperty({
     required: true,
+    example: '12345',
   })
   newPassword: string;
 
@@ -13,6 +14,7 @@ export class UpdateDTO {
   @IsEmail()
   @ApiProperty({
     required: true,
+    example: 'gabrielmarliere2005@gmail.com',
   })
   email: string
 

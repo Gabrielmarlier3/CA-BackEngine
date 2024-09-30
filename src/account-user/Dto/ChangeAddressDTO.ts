@@ -9,6 +9,7 @@ export class ChangeAddressDTO {
   @IsNumber()
   @ApiProperty({
     required: true,
+    example: 1,
   })
   accountId: number;
 

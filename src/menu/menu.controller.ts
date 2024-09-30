@@ -4,8 +4,9 @@ import { MenuModel } from './menu.model';
 import { CreateMenuDTO } from './dto/CreateMenuDTO';
 import { UpdateMenuDTO } from './dto/UpdateMenuDTO';
 import { DeleteMenuDTO } from './dto/DeleteMenuDTO';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Menu')
 @Controller('menu')
 export class MenuController {
 
