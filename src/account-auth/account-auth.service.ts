@@ -44,7 +44,7 @@ export class AccountAuthService {
     }
     catch(error){
       this.logger.error(error)
-      throw new HttpException('Login failed', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Login failed', HttpStatus.UNAUTHORIZED);
     }
   }
 
@@ -81,7 +81,7 @@ export class AccountAuthService {
       }
 
     }
-    throw new HttpException('refactor code does not match in database', HttpStatus.BAD_REQUEST);
+    throw new HttpException('Refactor code does not match in database', HttpStatus.BAD_REQUEST);
   }
 
 }

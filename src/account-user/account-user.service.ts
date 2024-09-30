@@ -27,7 +27,6 @@ export class AccountUserService {
     if (account) {
       return account;
     }
-    this.logger.error(`Account user not found`);
   }
 
   async getAccountUserById(userId: number) {
@@ -51,7 +50,8 @@ export class AccountUserService {
     if (account) {
       return account;
     }
-    this.logger.error(`Account user not found`);
+    this.logger.error(`User account not found`);
+    throw new HttpException('User account not found', HttpStatus.NOT_FOUND);
   }
 
   async createAccountUser(
@@ -178,10 +178,7 @@ export class AccountUserService {
       return;
     }
 
-    throw new HttpException(
-      'fail to change address',
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+    throw new HttpException('fail to change address', HttpStatus.BAD_REQUEST);
   }
 
   async deactivateAccount(email: string, password: string): Promise<void> {
