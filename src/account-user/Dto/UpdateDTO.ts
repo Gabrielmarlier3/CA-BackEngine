@@ -3,13 +3,6 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateDTO {
 
-  @IsNumber()
-  @ApiProperty({
-    required: false,
-    example: 1,
-  })
-  accountId: number;
-
   @IsOptional()
   @IsNumber()
   @ApiProperty({

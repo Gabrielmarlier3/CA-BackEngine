@@ -7,6 +7,7 @@ import { EmailModule } from '../email/email.module';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from '../middleware/jwt.strategy';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { JwtModule } from '@nestjs/jwt';
     SequelizeModule.forFeature([AccountAuthModel]),
     EmailModule,
   ],
-  providers: [AccountAuthService],
+  providers: [AccountAuthService, JwtStrategy],
   controllers: [AccountAuthController],
   exports: [AccountAuthService],
 })

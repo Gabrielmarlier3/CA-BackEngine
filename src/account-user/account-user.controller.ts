@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Logger, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Logger, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { AccountUserService } from './account-user.service';
 import { UpdateDTO } from './Dto/UpdateDTO';
 import { CreateDTO } from './Dto/CreateDTO';
@@ -8,36 +8,36 @@ import { DeleteDTO } from './Dto/DeleteDTO';
 import { AdminManagementDTO } from './Dto/AdminManagementDTO';
 import { ChangeAddressDTO } from './Dto/ChangeAddressDTO';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-
-function ApiExample(param: { summary: string; value: string }) {
-
-}
+import { JwtAuthGuard } from '../middleware/jwt-auth.guard';
 
 @ApiTags('Account User')
 @Controller('account-user')
 export class AccountUserController {
-
-  constructor(private readonly service: AccountUserService) {
-  }
+  constructor(private readonly service: AccountUserService) {}
 
   logger = new Logger('AccountUserController');
 
-  @ApiOperation({ summary: 'Endpoint to get the account information'})
+  @ApiOperation({ summary: 'Endpoint to get the account information' })
   @ApiResponse({ status: 201, description: 'Success.' })
   @ApiResponse({ status: 404, description: 'User account not found' })
   @ApiParam({ name: 'email', example: 'gabrielmarliere2005@gmail.com', description: 'User email address' })
-  @Get(':email')
-  async getAccount(@Param('email') email: string) {
-    return await this.service.getAccountUserByEmail(email);
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getAccount(@Req() req: any) {
+    const userId = req.user.userId;
+    return await this.service.getAccountUserById(userId);
   }
 
   @ApiOperation({ summary: 'Endpoint to change the account information like a telephone number' })
   @ApiResponse({ status: 201, description: 'Success.' })
   @ApiResponse({ status: 400, description: 'Error updating account' })
+  @UseGuards(JwtAuthGuard)
   @Put('updateAccount')
-  async updateAccount(@Body() updateDto: UpdateDTO): Promise<void> {
-    const { accountId, email, telephoneNumber, name } = updateDto;
-    await this.service.updateAccountUser(accountId, email, name, telephoneNumber);
+  async updateAccount(@Body() updateDto: UpdateDTO, @Req() req: any): Promise<void> {
+    const { email, telephoneNumber, name } = updateDto;
+    const userId = req.user.userId;
+
+    await this.service.updateAccountUser(userId, email, name, telephoneNumber);
   }
 
   @ApiOperation({ summary: 'Endpoint to create the account' })
@@ -63,6 +63,7 @@ export class AccountUserController {
   @ApiOperation({ summary: 'Endpoint to update the account address, like changing a house number' })
   @ApiResponse({ status: 201, description: 'Success.' })
   @ApiResponse({ status: 400, description: 'Error updating account' })
+  @UseGuards(JwtAuthGuard)
   @Put('changeAddress')
   async changeAddress(@Body() changeAddressDto: ChangeAddressDTO): Promise<void> {
     const { accountId, address } = changeAddressDto;
@@ -73,6 +74,7 @@ export class AccountUserController {
   @ApiOperation({ summary: 'Endpoint to deactivate the account' })
   @ApiResponse({ status: 201, description: 'Success.' })
   @ApiResponse({ status: 400, description: 'Error deactivate account, password don`t match' })
+  @UseGuards(JwtAuthGuard)
   @Put('deactivateAccount')
   async deactivateAccount(@Body() deleteDto: DeleteDTO): Promise<void> {
     const { email, password } = deleteDto;
@@ -98,5 +100,4 @@ export class AccountUserController {
     const { currentAdminEmail, targetAdminEmail } = adminManagement;
     await this.service.removeAdmin(currentAdminEmail, targetAdminEmail);
   }
-
 }
